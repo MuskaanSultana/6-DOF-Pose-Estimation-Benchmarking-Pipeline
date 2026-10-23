@@ -3,7 +3,8 @@ param(
     [string]$Message
 )
 
-# User configurations
+$ErrorActionPreference = "Stop"
+
 $User1_Name = "Muskaan Sultana"
 $User1_Email = "muskaan.sultana2002@gmail.com"
 
@@ -13,21 +14,29 @@ $User2_Email = "adithya040@gmail.com"
 Write-Host "Staging all changes..." -ForegroundColor Cyan
 git add -A
 
-# Check if there are changes staged
-$status = git status --porcelain
-if (-not $status) {
-    Write-Host "No changes detected to commit. Creating dual sync check-in..." -ForegroundColor Yellow
-    git commit --allow-empty --author="$User1_Name <$User1_Email>" -m "$Message"
-} else {
-    Write-Host "Creating commit for $User1_Name..." -ForegroundColor Green
-    git commit --author="$User1_Name <$User1_Email>" -m "$Message"
+$hasChanges = git status --porcelain
+if (-not $hasChanges) {
+    Write-Host "No file modifications detected. Creating synchronizing commits..." -ForegroundColor Yellow
 }
 
-# Create second individual commit for User 2 (guarantees green box activity on GitHub)
-Write-Host "Creating sync commit for $User2_Name..." -ForegroundColor Green
-git commit --allow-empty --author="$User2_Name <$User2_Email>" -m "$Message [sync]"
+# 1. Commit and push directly as Adithya Lee to adithyalee repository
+Write-Host "`n[1/2] Committing as $User2_Name for adithyalee repository..." -ForegroundColor Green
+if ($hasChanges) {
+    git commit --author="$User2_Name <$User2_Email>" -m "$Message"
+} else {
+    git commit --allow-empty --author="$User2_Name <$User2_Email>" -m "$Message"
+}
 
-Write-Host "Pushing to remotes..." -ForegroundColor Cyan
-git push
+Write-Host "Pushing to adithyalee repository..." -ForegroundColor Cyan
+git push adithya main
 
-Write-Host "`nDone! Both accounts ($User1_Name & $User2_Name) have received individual commits and green box activity." -ForegroundColor Green
+# 2. Add an individual commit as Muskaan Sultana for MuskaanSultana repository
+Write-Host "`n[2/2] Committing as $User1_Name for MuskaanSultana repository..." -ForegroundColor Green
+git commit --allow-empty --author="$User1_Name <$User1_Email>" -m "$Message"
+
+Write-Host "Pushing to MuskaanSultana repository..." -ForegroundColor Cyan
+git push muskaan main
+
+Write-Host "`nSuccessfully pushed!" -ForegroundColor Green
+Write-Host "- https://github.com/adithyalee/6-DOF-Pose-Estimation-Benchmarking-Pipeline shows $User2_Name as commit author." -ForegroundColor Cyan
+Write-Host "- https://github.com/MuskaanSultana/6-DOF-Pose-Estimation-Benchmarking-Pipeline shows $User1_Name as commit author." -ForegroundColor Cyan
